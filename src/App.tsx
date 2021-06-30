@@ -17,12 +17,11 @@ const useStyles = makeStyles((theme: Theme) =>
 
 export default function FullWidthGrid() {
     const classes = useStyles();
-    const [sections, setSections] = useState([]);
-    const [themes, setThemes] = useState([]);
+    const [prompts, setPrompts] = useState([]);
 
     return (
         <div className={classes.root}>
-            <MainPage sections={sections} setSections={setSections} themes={themes} setThemes={setThemes}/>
+            <MainPage prompts={prompts} setPrompts={setPrompts}/>
         </div>
     );
 }

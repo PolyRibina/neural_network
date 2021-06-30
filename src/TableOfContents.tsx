@@ -36,13 +36,22 @@ const useStyles = makeStyles((theme: Theme) =>
 
 interface StandardComponentProps{
     isTeacher: boolean
-    sections: string[]
-    themes: string[]
-    setThemes: Dispatch<SetStateAction<never[]>>
+    map2: Map<string, string[]>
+    chooseTheme: string
+    sections: any[]
+    sectionsHelp: any[]
+    prompts: string[]
+    setPrompts: Dispatch<SetStateAction<never[]>>
+    setChooseTheme: Dispatch<SetStateAction<string>>
     setSections: Dispatch<SetStateAction<never[]>>
+    chooseSection: string
+    setChooseSection: Dispatch<SetStateAction<string>>
+    chooseSectionTheme: (theme: string) => void
 }
 
-export default function TableOfContents({isTeacher, sections, themes, setThemes, setSections}: StandardComponentProps) {
+let menu: string[] = []
+
+export default function TableOfContents({isTeacher, map2, sections, setSections, sectionsHelp, chooseTheme, setChooseTheme, chooseSection, setChooseSection, chooseSectionTheme}: StandardComponentProps) {
     const classes = useStyles();
 
     const [open, setOpen] = React.useState(false);
@@ -53,22 +62,11 @@ export default function TableOfContents({isTeacher, sections, themes, setThemes,
     const [openAddTheme, setOpenAddTheme] = React.useState(false);
     const [nameTheme, setNameTheme] = React.useState('');
 
-    const [chooseTheme, setChooseTheme] = React.useState('');
-    const [chooseSection, setChooseSection] = React.useState('');
-
     const [deleteTheme, setDeleteTheme] = React.useState(false);
 
     const handleClick = (section: string) => {
         setChooseSection(section);
         setOpen(!open);
-        console.log(chooseSection);
-        if(open){
-            Api.getThemes(section).then((data)=>{
-                setThemes(data);
-            }).catch(()=>{
-                setThemes([]);
-            })
-        }
     };
 
     const addSection = () => {
@@ -80,14 +78,30 @@ export default function TableOfContents({isTeacher, sections, themes, setThemes,
         setOpenAddSection(false);
     };
 
-    const addSectionSave = () => {
-        sections = [...sections, nameSection];
-        Api.setSection(nameSection).then((data)=> {
-            setNameSection('');
-            setSections(data);
-            addSectionClose();
+    const mapToObj = (inputMap: Map<string, string[]>) => {
+        let obj = {};
+        inputMap.forEach((value: string[], key: string) => {
+            // @ts-ignore
+            obj[key] = value
         });
 
+        return obj;
+    }
+
+    const addSectionSave = () => {
+        //sections = [...sections, nameSection];
+        map2.set(nameSection, [])
+
+        menu = [...menu, nameSection]; // для отображения
+
+        Api.setContent("menu", JSON.stringify(mapToObj(map2))).then(() => {
+            console.log("success set content");
+            sectionsHelp = [...sectionsHelp, [nameSection, []]];
+            // @ts-ignore
+            setSections(sectionsHelp);
+        })
+
+        addSectionClose();
     };
 
     const addTheme = () => {
@@ -100,12 +114,26 @@ export default function TableOfContents({isTeacher, sections, themes, setThemes,
     };
 
     const addThemeSave = () => {
-        themes = [...themes, nameTheme];
-        Api.setTheme(chooseSection, nameTheme).then((data)=> {
-            setNameTheme('');
-            setThemes(data)
+        let menuTh = map2.get(chooseSection);
+        // @ts-ignore
+        if (menuTh === undefined) {
+            alert("Сначала выберите раздел!");
             addThemeClose();
-        });
+            return;
+        }
+        menuTh = [...menuTh, nameTheme];
+        map2.set(chooseSection, menuTh)
+        Api.setContent("menu", JSON.stringify(mapToObj(map2))).then(() => {
+            console.log("success set theme");
+            sectionsHelp.forEach((value) => {
+                if (value[0] === chooseSection) {
+                    value[1] = menuTh
+                }
+            })
+        })
+        // @ts-ignore
+        setSections(sectionsHelp);
+        addThemeClose();
     };
 
     const deleteThemeOpen = () => {
@@ -117,16 +145,9 @@ export default function TableOfContents({isTeacher, sections, themes, setThemes,
     };
 
     const deleteThemeAgree = () => {
-        themes = themes.filter(letsdelete => letsdelete !== chooseTheme);
-        setDeleteTheme(false);
+        //themes = themes.filter(letsdelete => letsdelete !== chooseTheme);
+        //setDeleteTheme(false);
     };
-
-    document.addEventListener("DOMContentLoaded", ()=> {
-        Api.getThemes(chooseSection).then((data)=>{
-            setThemes(data);
-            console.log(themes);
-        })
-    })
 
     return (
         <div>
@@ -143,29 +164,32 @@ export default function TableOfContents({isTeacher, sections, themes, setThemes,
                     {sections?.map((section) => {
                         return (
                             <div>
-                                <ListItem selected = {section === chooseSection} key={section} button onClick={() => {handleClick(section)}}>
-                                    <ListItemText primary={section} />
+                                <ListItem selected={section[0] === chooseSection} key={section[0]} button
+                                          onClick={() => {
+                                              handleClick(section[0])
+                                          }}>
+                                    <ListItemText primary={section[0]}/>
                                 </ListItem>
 
-                                <Collapse style={{display: section === chooseSection? 'inline':'none'}} in={open} timeout="auto" unmountOnExit>
-                                    <List dense>
-                                        {themes?.map((theme) => {
-                                            if(section === chooseSection){
+                                <Collapse style={{display: section[0] === chooseSection ? 'inline' : 'none'}} in={open}
+                                          timeout="auto" unmountOnExit>
+                                    <List dense style={{marginLeft: "10px"}}>
+                                        {section[1]?.map((theme: string) => {
+                                            if (section[0] === chooseSection) {
                                                 console.log(theme)
                                                 return (
-                                                    <ListItem selected = {theme === chooseTheme} key={theme} button onClick={() => (setChooseTheme(theme))}>
-                                                        <ListItemText primary={theme} />
+                                                    <ListItem selected={theme === chooseTheme} key={theme} button
+                                                              onClick={() => {setChooseTheme(theme); chooseSectionTheme(theme)}}>
+                                                        <ListItemText primary={theme}/>
                                                     </ListItem>
                                                 );
-                                            }
-                                            else {
+                                            } else {
                                                 return (
                                                     <div>
 
                                                     </div>
                                                 );
                                             }
-
                                         })}
                                     </List>
                                 </Collapse>
@@ -174,17 +198,25 @@ export default function TableOfContents({isTeacher, sections, themes, setThemes,
                     })}
                 </List>
             </List>
-            <div style={{display: isTeacher?'inline':'none'}}>
+            <div style={{display: isTeacher ? 'inline' : 'none'}}>
                 <ButtonGroup size="large" color="primary" aria-label="outlined secondary button group">
                     <PopupState variant="popover" popupId="demo-popup-menu">
                         {(popupState) => (
                             <React.Fragment>
-                                <ButtonGroup><Button size="large" color="primary" aria-label="outlined secondary button group" {...bindTrigger(popupState)}><AddIcon/></Button></ButtonGroup>
+                                <ButtonGroup><Button size="large" color="primary"
+                                                     aria-label="outlined secondary button group" {...bindTrigger(popupState)}><AddIcon/></Button></ButtonGroup>
                                 <Menu {...bindMenu(popupState)}>
-                                    <MenuItem onClick={()=> {addSection(); popupState.close()}}>Добавить раздел</MenuItem>
-                                    <MenuItem onClick={()=> {addTheme(); popupState.close()}}>Добавить тему</MenuItem>
+                                    <MenuItem onClick={() => {
+                                        addSection();
+                                        popupState.close()
+                                    }}>Добавить раздел</MenuItem>
+                                    <MenuItem onClick={() => {
+                                        addTheme();
+                                        popupState.close()
+                                    }}>Добавить тему</MenuItem>
                                 </Menu>
-                                <Dialog open={openAddSection} onClose={addSectionClose} aria-labelledby="form-dialog-title">
+                                <Dialog open={openAddSection} onClose={addSectionClose}
+                                        aria-labelledby="form-dialog-title">
                                     <DialogContent>
                                         <DialogContentText>
                                             Введите название раздела
@@ -195,7 +227,9 @@ export default function TableOfContents({isTeacher, sections, themes, setThemes,
                                             label="Раздел"
                                             fullWidth
                                             value={nameSection}
-                                            onChange={e =>{setNameSection(e.target.value)}}
+                                            onChange={e => {
+                                                setNameSection(e.target.value)
+                                            }}
                                         />
                                     </DialogContent>
                                     <DialogActions>
@@ -218,7 +252,9 @@ export default function TableOfContents({isTeacher, sections, themes, setThemes,
                                             label="Тема"
                                             fullWidth
                                             value={nameTheme}
-                                            onChange={e =>{setNameTheme(e.target.value)}}
+                                            onChange={e => {
+                                                setNameTheme(e.target.value)
+                                            }}
                                         />
                                     </DialogContent>
                                     <DialogActions>

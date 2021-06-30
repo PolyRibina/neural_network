@@ -46,13 +46,20 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 interface StandardComponentProps{
-    sections: string[]
+    chooseTheme: string
+    setChooseTheme: Dispatch<SetStateAction<string>>
+    prompts: string[]
+    setPrompts: Dispatch<SetStateAction<never[]>>
     setSections: Dispatch<SetStateAction<never[]>>
-    themes: string[]
-    setThemes: Dispatch<SetStateAction<never[]>>
+    sectionsHelp:any[]
+    map2: Map<string, string[]>
+    mapContent: Map<string[], string[]>
     handleClick: () => void
+    sections:any[]
+    chooseSection: string
+    setChooseSection: Dispatch<SetStateAction<string>>
 }
-export default function AuthPage({sections, setSections, themes, setThemes, handleClick}: StandardComponentProps) {
+export default function AuthPage({map2, handleClick,sections, setSections, sectionsHelp, prompts, setPrompts, chooseTheme, setChooseTheme, mapContent, chooseSection, setChooseSection}: StandardComponentProps) {
     const classes = useStyles();
 
     const [code, setCode] = useState('');
@@ -128,7 +135,7 @@ export default function AuthPage({sections, setSections, themes, setThemes, hand
     );
     else{
         return (
-            <MainPageForTeacher sections={sections} setSections={setSections} themes={themes} setThemes={setThemes} handleClicks={handleClicks}/>
+            <MainPageForTeacher map2={map2} handleClicks={handleClicks} sections={sections} setSections={setSections} sectionsHelp={sectionsHelp} prompts={prompts} setPrompts={setPrompts} chooseTheme={chooseTheme} setChooseTheme={setChooseTheme} mapContent={mapContent} chooseSection={chooseSection} setChooseSection={setChooseSection}/>
         );
     }
 }
