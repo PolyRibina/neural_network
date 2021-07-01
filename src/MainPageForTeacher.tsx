@@ -179,7 +179,7 @@ export default function MainPageForTeacher({map2, handleClicks, sections, setSec
                 </Grid>
                 <Grid item xs={12} sm={3}>
                     <Paper className={classes.paper}>
-                        <TableOfContents isTeacher={true} prompts={prompts} map2={map2} sections={sections} setSections={setSections} sectionsHelp={sectionsHelp} setPrompts={setPrompts} chooseTheme={chooseTheme} setChooseTheme={setChooseTheme} chooseSection={chooseSection} setChooseSection={setChooseSection} chooseSectionTheme={chooseSectionTheme}/>
+                        <TableOfContents isTeacher={true} prompts={prompts} map2={map2} sections={sections} setSections={setSections} sectionsHelp={sectionsHelp} setPrompts={setPrompts} chooseTheme={chooseTheme} setChooseTheme={setChooseTheme} chooseSection={chooseSection} setChooseSection={setChooseSection} chooseSectionTheme={chooseSectionTheme} openHelpSnake={false}/>
                     </Paper>
                 </Grid>
                 <Grid item xs={12} sm={9} style={{display: chooseTheme !== ""? "inline":"none"}}>

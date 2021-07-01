@@ -5,7 +5,7 @@ import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import Collapse from '@material-ui/core/Collapse';
-import {ButtonGroup, DialogActions} from "@material-ui/core";
+import {ButtonGroup, DialogActions, Slide} from "@material-ui/core";
 import Button from "@material-ui/core/Button";
 import ArrowUpwardIcon from '@material-ui/icons/ArrowUpward';
 import ArrowDownwardIcon from '@material-ui/icons/ArrowDownward';
@@ -19,6 +19,8 @@ import { DialogContent } from '@material-ui/core';
 import { DialogContentText } from '@material-ui/core';
 import { TextField } from '@material-ui/core';
 import Api from "./Api";
+import Paper from "@material-ui/core/Paper";
+import Help1 from "./Help1.png";
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -30,6 +32,11 @@ const useStyles = makeStyles((theme: Theme) =>
         },
         nested: {
             paddingLeft: theme.spacing(4),
+        },
+        paper: {
+            padding: theme.spacing(2),
+            textAlign: 'center',
+            color: theme.palette.text.secondary,
         },
     }),
 );
@@ -47,11 +54,12 @@ interface StandardComponentProps{
     chooseSection: string
     setChooseSection: Dispatch<SetStateAction<string>>
     chooseSectionTheme: (theme: string) => void
+    openHelpSnake: boolean
 }
 
 let menu: string[] = []
 
-export default function TableOfContents({isTeacher, map2, sections, setSections, sectionsHelp, chooseTheme, setChooseTheme, chooseSection, setChooseSection, chooseSectionTheme}: StandardComponentProps) {
+export default function TableOfContents({isTeacher, map2, sections, setSections, sectionsHelp, chooseTheme, setChooseTheme, chooseSection, setChooseSection, chooseSectionTheme, openHelpSnake}: StandardComponentProps) {
     const classes = useStyles();
 
     const [open, setOpen] = React.useState(false);
@@ -204,6 +212,11 @@ export default function TableOfContents({isTeacher, map2, sections, setSections,
                     })}
                 </List>
             </List>
+            <div>
+                <Slide style={{position: "absolute", top: "60vh", left: "32.5vh"}} direction="right" in={openHelpSnake} mountOnEnter unmountOnExit>
+                    <img src={Help1} alt={"cannot display"} style={{height: "30vh", marginLeft: "3vh"}}/>
+                </Slide>
+            </div>
             <div style={{display: isTeacher ? 'inline' : 'none'}}>
                 <ButtonGroup size="large" color="primary" aria-label="outlined secondary button group">
                     <PopupState variant="popover" popupId="demo-popup-menu">
