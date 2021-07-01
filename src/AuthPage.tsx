@@ -78,6 +78,9 @@ export default function AuthPage({map2, handleClick,sections, setSections, secti
     const handleClicks = () => {
         setIsTeacher(!isTeacher);
         handleClick();
+        setChooseTheme('');
+        setChooseSection('');
+        window.location.reload();
     };
 
     const onKeyPressed = (e: { keyCode: number; }) =>{

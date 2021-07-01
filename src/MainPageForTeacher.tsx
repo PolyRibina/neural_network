@@ -61,6 +61,7 @@ interface StandardComponentProps{
 
 let currentPrompt: string;
 let listArray: string[]=[];
+let mapContentHelp = new Map()
 
 function LinearProgressWithLabel(props: LinearProgressProps & { value: number }) {
     return (
@@ -77,6 +78,7 @@ function LinearProgressWithLabel(props: LinearProgressProps & { value: number })
     );
 }
 
+
 export default function MainPageForTeacher({map2, handleClicks, sections, setSections, sectionsHelp, prompts, setPrompts, chooseTheme, setChooseTheme, mapContent, chooseSection, setChooseSection}: StandardComponentProps) {
 
     const classes = useStyles();
@@ -85,6 +87,8 @@ export default function MainPageForTeacher({map2, handleClicks, sections, setSec
 
     const [text, setText] = React.useState('');
     const [code, setCode] = React.useState('');
+
+    const [count, setCount] = React.useState(0);
 
     const helpButtonClick = () => {
         setOpenAddPrompt(true);
@@ -113,11 +117,16 @@ export default function MainPageForTeacher({map2, handleClicks, sections, setSec
 
     const saveList = () => {
         listArray.push(listArray.length.toString());
+        setCount(count+1);
+        console.log(count);
+
         mapContent.set([chooseSection, chooseTheme, listArray[listArray.length-1]], [text, code, currentPrompt]);
         console.log(mapContent);
 
         setText('');
         setCode('');
+
+        chooseSectionTheme(chooseTheme);
     };
 
     const saveTheme = () => {
@@ -126,6 +135,26 @@ export default function MainPageForTeacher({map2, handleClicks, sections, setSec
             console.log("success set list");
         })
         setChooseTheme('');
+    };
+
+    const chooseSectionTheme = (theme: string) => {
+        setCount(count+1);
+        Api.getContent("content").then((data)=>{
+            mapContentHelp = new Map(Object.entries(data));
+            console.log("страница", count);
+            let key = chooseSection +"," + theme + "," + count;
+            console.log(key);
+            console.log("фикс ошибки", mapContentHelp);
+            if(mapContentHelp.has(key)){
+                setText(mapContentHelp.get(key)[0]);
+            }
+            if(mapContentHelp.has(key)){
+                setCode(mapContentHelp.get(key)[1]);
+            }
+            if(mapContentHelp.has(key)){
+                setPromptText(mapContentHelp.get(key)[2]);
+            }
+        })
     };
 
     return (
@@ -150,15 +179,14 @@ export default function MainPageForTeacher({map2, handleClicks, sections, setSec
                 </Grid>
                 <Grid item xs={12} sm={3}>
                     <Paper className={classes.paper}>
-                        <TableOfContents isTeacher={true} prompts={prompts} map2={map2} sections={sections} setSections={setSections} sectionsHelp={sectionsHelp} setPrompts={setPrompts} chooseTheme={chooseTheme} setChooseTheme={setChooseTheme} chooseSection={chooseSection} setChooseSection={setChooseSection} chooseSectionTheme={()=>{}}/>
+                        <TableOfContents isTeacher={true} prompts={prompts} map2={map2} sections={sections} setSections={setSections} sectionsHelp={sectionsHelp} setPrompts={setPrompts} chooseTheme={chooseTheme} setChooseTheme={setChooseTheme} chooseSection={chooseSection} setChooseSection={setChooseSection} chooseSectionTheme={chooseSectionTheme}/>
                     </Paper>
                 </Grid>
                 <Grid item xs={12} sm={9} style={{display: chooseTheme !== ""? "inline":"none"}}>
                     <Paper className={classes.paper}>
-                        <LinearProgressWithLabel value={50} />
                         <TextField
                             label="Текст лекции"
-                            style={{width: "100%", height: "100%", marginBottom: "0.95vh"}}
+                            style={{width: "100%", height: "100%", marginBottom: "2.5vh"}}
                             multiline
                             rows={20}
                             defaultValue=""
@@ -221,18 +249,25 @@ export default function MainPageForTeacher({map2, handleClicks, sections, setSec
                                 />
                             </Grid>
                         </Grid>
-                        <ButtonGroup
-                            orientation="horizontal"
-                            color="primary"
-                            aria-label="vertical outlined primary button group"
-                            style={{marginLeft: '63.3vh', marginTop: '2.1vh'}}
-                        >
-                            <Button><ArrowBackIcon/></Button>
-                            <Button onClick={saveList}>
-                                <ArrowForwardIcon/>
-                            </Button>
-                            <Button onClick={saveTheme}>Сохранить тему</Button>
-                        </ButtonGroup>
+                        <Grid container>
+                            <Grid item xs={12} sm={4}>
+                                <p style={{marginTop: '2.7vh', marginLeft: '44vh'}}>{count}</p>
+                            </Grid>
+                            <Grid item xs={12} sm={8}>
+                                <ButtonGroup
+                                    orientation="horizontal"
+                                    color="primary"
+                                    aria-label="vertical outlined primary button group"
+                                    style={{marginTop: '2.1vh', marginLeft: '32.7vh'}}
+                                >
+                                    <Button><ArrowBackIcon/></Button>
+                                    <Button onClick={saveList}>
+                                        <ArrowForwardIcon/>
+                                    </Button>
+                                    <Button onClick={saveTheme}>Сохранить тему</Button>
+                                </ButtonGroup>
+                            </Grid>
+                        </Grid>
                     </Paper>
                 </Grid>
                 <Grid item xs={12} sm={9} style={{display: chooseTheme === ""? "inline":"none"}}>

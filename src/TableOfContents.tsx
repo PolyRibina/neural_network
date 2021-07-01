@@ -66,7 +66,13 @@ export default function TableOfContents({isTeacher, map2, sections, setSections,
 
     const handleClick = (section: string) => {
         setChooseSection(section);
-        setOpen(!open);
+        setChooseTheme('');
+        //if(section!==chooseSection){
+       //     setOpen(true);
+        //}
+        //else{
+            setOpen(!open);
+        //}
     };
 
     const addSection = () => {

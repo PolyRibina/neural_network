@@ -37,7 +37,7 @@ interface StandardComponentProps{
 let map2 = new Map()
 let mapContentHelp = new Map()
 let sectionsHelp: any[] = []
-let mapContent = new Map<string[], string[]>() // <[раздел, тема, страница], [текст, код, подсказки[]]>
+let mapContent = new Map<string[], string[]>() // <[раздел, тема, страница], [текст, код, подсказки]>
 
 function LinearProgressWithLabel(props: LinearProgressProps & { value: number }) {
     return (
@@ -67,14 +67,21 @@ export default function MainPage({prompts, setPrompts}: StandardComponentProps) 
 
     const handleClick = () => {
         setAuth(!auth);
+        setChooseSection("");
+        setChooseTheme("");
     };
 
     const chooseSectionTheme = (theme: string) => {
+        console.log(mapContentHelp)
         let key = chooseSection +"," + theme + ",0";
         console.log(key);
         console.log(mapContentHelp.get(key));
-        setText(mapContentHelp.get(key)[0]);
-        setCode(mapContentHelp.get(key)[1]);
+        if(mapContentHelp.has(key)){
+            setText(mapContentHelp.get(key)[0]);
+        }
+        if(mapContentHelp.has(key)){
+            setCode(mapContentHelp.get(key)[1]);
+        }
     };
 
     window.onload=()=>{
@@ -113,7 +120,15 @@ export default function MainPage({prompts, setPrompts}: StandardComponentProps) 
                             </Paper>
                         </Grid>
                         <Grid item xs={12} sm={9}>
-                            <Paper className={classes.paper} style={{height: "16.6vh"}}>xs=12</Paper>
+                            <Paper className={classes.paper} style={{height: "16.6vh"}}>
+                                {
+                                    chooseSection
+                                }
+                                |
+                                {
+                                    chooseTheme
+                                }
+                            </Paper>
                         </Grid>
                     </Grid>
                 </Grid>
@@ -130,16 +145,7 @@ export default function MainPage({prompts, setPrompts}: StandardComponentProps) 
                         </div>
                         <div style={{display: chooseTheme !== ""? "inline":"none"}}>
                             <LinearProgressWithLabel value={50} />
-                            <TextField
-                                label="Текст лекции"
-                                style={{width: "100%", marginBottom: "0.95vh"}}
-                                multiline
-                                rows={20}
-                                defaultValue=""
-                                disabled={true}
-                                value={text}
-                                variant="outlined"
-                            />
+                            <p>{text}</p>
                             <Grid container spacing={10}>
                                 <Grid item xs={12} sm={1}>
                                     <ButtonGroup
