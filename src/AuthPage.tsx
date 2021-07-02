@@ -124,7 +124,7 @@ export default function AuthPage({map2, handleClick,sections, setSections, secti
                     </Button>
                     <Grid container>
                         <Grid item xs>
-                            <Link href="#" variant="body2" onClick={handleClick}>
+                            <Link href="#" variant="body2" onClick={()=> {window.location.reload();}}>
                                 ← Назад
                             </Link>
                         </Grid>

@@ -20,6 +20,7 @@ import ArrowForwardIcon from "@material-ui/icons/ArrowForward";
 import LinearProgress, {LinearProgressProps} from "@material-ui/core/LinearProgress";
 import GitHubIcon from '@material-ui/icons/GitHub';
 import LiveHelpIcon from "@material-ui/icons/LiveHelp";
+import HomeWorkIcon from '@material-ui/icons/HomeWork';
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -69,6 +70,8 @@ export default function MainPage({prompts, setPrompts}: StandardComponentProps) 
     const [text, setText] = useState('');
     const [code, setCode] = useState('');
     const [promptText, setPromptText] = React.useState("");
+    const [linkText, setLinkText] = React.useState("");
+    const [linkTextDZ, setLinkTextDZ] = React.useState("");
 
     const [count, setCount] = React.useState(0);
 
@@ -76,11 +79,16 @@ export default function MainPage({prompts, setPrompts}: StandardComponentProps) 
     const [startList, setStartList] = React.useState(true);
 
     const [openHelpSnake, setOpenHelpSnake] = React.useState(false);
+    const [openNone, setOpenNone] = React.useState(false);
 
     const handleClick = () => {
         setAuth(!auth);
         setChooseSection("");
         setChooseTheme("");
+    };
+
+    const openNoneController = () => {
+        setOpenNone(false);
     };
 
     const counterList = (theme: string) => {
@@ -96,16 +104,23 @@ export default function MainPage({prompts, setPrompts}: StandardComponentProps) 
         setOpenHelpSnake(false);
         setCount(helpCount);
         let key = chooseSection + "," + theme + "," + helpCount;
+
         counterList(theme)
+
         if(mapContentHelp.has(key)){
+            setOpenNone(false);
             setText(mapContentHelp.get(key)[0]);
-        }
-        if(mapContentHelp.has(key)){
             setCode(mapContentHelp.get(key)[1]);
-        }
-        if(mapContentHelp.has(key)){
             setPromptText(mapContentHelp.get(key)[2]);
+            setLinkText(mapContentHelp.get(key)[3])
+            setLinkTextDZ(mapContentHelp.get(key)[4])
+
         }
+        else if(!mapContentHelp.has(key) && int === 0){
+            setOpenNone(true);
+            console.log(openNone)
+        }
+
     };
 
     const backList = () => {
@@ -122,6 +137,12 @@ export default function MainPage({prompts, setPrompts}: StandardComponentProps) 
         setOpenHelpSnake(!openHelpSnake);
         setCode(promptText);
     };
+    const helpCountNull = ()=>{
+        console.log("Обнуляем")
+        helpCount = 0;
+        setEndLists(false);
+        setStartList(true);
+    }
 
     const saveList = () => {
         helpCount += 1;
@@ -140,6 +161,7 @@ export default function MainPage({prompts, setPrompts}: StandardComponentProps) 
             map2 = new Map(Object.entries(data));
             console.log(map2);
             map2.forEach((value:string[], key: string)=>{
+                console.log("От студента!")
                 sectionsHelp = [...sectionsHelp, [key, value]];
                 // @ts-ignore
                 setSections(sectionsHelp);
@@ -170,20 +192,24 @@ export default function MainPage({prompts, setPrompts}: StandardComponentProps) 
                         </Grid>
                         <Grid item xs={12} sm={9}>
                             <Paper className={classes.paper} style={{height: "16.6vh"}}>
-                                {
-                                    chooseSection
-                                }
-                                |
-                                {
-                                    chooseTheme
-                                }
+                                <div style={{marginTop: '5vh'}}>
+                                    <p style={{display: chooseSection !== ""? "inline":"none", fontFamily: 'Andale Mono, monospace', fontSize: '200%'}}>
+                                        {
+                                            chooseSection + " > "
+                                        }
+
+                                        {
+                                            chooseTheme
+                                        }
+                                    </p>
+                                </div>
                             </Paper>
                         </Grid>
                     </Grid>
                 </Grid>
                 <Grid item xs={12} sm={3}>
                     <Paper className={classes.paper}>
-                        <TableOfContents isTeacher={false} prompts={prompts} setPrompts={setPrompts} map2={map2} sections={sections} setSections={setSections} sectionsHelp={sectionsHelp} chooseTheme={chooseTheme} setChooseTheme={setChooseTheme} chooseSection={chooseSection} setChooseSection={setChooseSection} chooseSectionTheme={chooseSectionTheme} openHelpSnake={openHelpSnake}/>
+                        <TableOfContents isTeacher={false} prompts={prompts} setPrompts={setPrompts} map2={map2} sections={sections} setSections={setSections} sectionsHelp={sectionsHelp} chooseTheme={chooseTheme} setChooseTheme={setChooseTheme} chooseSection={chooseSection} setChooseSection={setChooseSection} chooseSectionTheme={chooseSectionTheme} openHelpSnake={openHelpSnake} setCount={setCount} helpCountNull={helpCountNull} openNoneController={openNoneController}/>
                     </Paper>
                 </Grid>
                 <Grid item xs={12} sm={9}>
@@ -192,8 +218,9 @@ export default function MainPage({prompts, setPrompts}: StandardComponentProps) 
                             <img src={Hello1} onClick={()=> setHelloPic(true)} alt={"cannot display"} style={{marginTop: "20vh", display: !helloPic? "inline":"none"}}/>
                             <img src={Hello2} onClick={()=> setHelloPic(false)} alt={"cannot display"} style={{marginTop: "20vh", display: helloPic? "inline":"none"}}/>
                         </div>
-                        <div style={{display: chooseTheme !== ""? "inline":"none"}}>
-                            <Button><a href="https://colab.research.google.com/github/PolyRibina/neural_network/blob/main/Topic%201_Class.ipynb" rel="noreferrer"><GitHubIcon/></a></Button>
+                        <div style={{display: chooseTheme !== "" && !openNone? "inline":"none"}}>
+                            <Button size="small" variant="contained" style={{marginBottom: '0.2vh', borderRadius: '1vh', marginRight: '10vh'}}><a href={linkText} target="_blank" rel="noreferrer"><GitHubIcon/> Открыть в Colab</a></Button>
+                            <Button size="small" variant="contained" style={{marginBottom: '0.2vh', borderRadius: '1vh'}}><a href={linkTextDZ} target="_blank" rel="noreferrer"><GitHubIcon/> Открыть в Colab (Д/З)</a></Button>
                             <LinearProgressWithLabel value={100 / int * (count + 1)} />
                             <Paper>
                                 <p style={{height: '30vh'}}>{text}</p>
@@ -230,7 +257,7 @@ export default function MainPage({prompts, setPrompts}: StandardComponentProps) 
                                 <Grid item xs={12} sm={4}>
                                     <p style={{marginTop: '2.7vh', marginLeft: '44vh'}}>{count + 1}</p>
                                 </Grid>
-                                <Grid item xs={12} sm={8}>
+                                <Grid item xs={12} sm={4}>
                                     <ButtonGroup
                                         orientation="horizontal"
                                         color="primary"
@@ -241,8 +268,21 @@ export default function MainPage({prompts, setPrompts}: StandardComponentProps) 
                                         <Button onClick={saveList} disabled={endLists}><ArrowForwardIcon/></Button>
                                     </ButtonGroup>
                                 </Grid>
+                                <Grid item xs={12} sm={4}>
+                                    <ButtonGroup
+                                        orientation="horizontal"
+                                        color="primary"
+                                        aria-label="vertical outlined primary button group"
+                                        style={{marginTop: '2.1vh', marginLeft: '19.6vh'}}
+                                    >
+                                        <Button style={{display: endLists? "inline":"none", marginLeft: '5vh'}}><a href="https://sdo.ksu.edu.ru/mod/assign/view.php?id=131348" target="_blank" rel="noreferrer"><HomeWorkIcon/></a></Button>
+                                    </ButtonGroup>
+                                </Grid>
                             </Grid>
 
+                        </div>
+                        <div style={{display: openNone ? "inline":"none"}}>
+                            <p>Здесь пока ничего нет...</p>
                         </div>
                     </Paper>
                 </Grid>

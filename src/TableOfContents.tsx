@@ -7,8 +7,6 @@ import ListItemText from '@material-ui/core/ListItemText';
 import Collapse from '@material-ui/core/Collapse';
 import {ButtonGroup, DialogActions, Slide} from "@material-ui/core";
 import Button from "@material-ui/core/Button";
-import ArrowUpwardIcon from '@material-ui/icons/ArrowUpward';
-import ArrowDownwardIcon from '@material-ui/icons/ArrowDownward';
 import AddIcon from '@material-ui/icons/Add';
 import RemoveIcon from '@material-ui/icons/Remove';
 import Menu from '@material-ui/core/Menu';
@@ -19,8 +17,14 @@ import { DialogContent } from '@material-ui/core';
 import { DialogContentText } from '@material-ui/core';
 import { TextField } from '@material-ui/core';
 import Api from "./Api";
-import Paper from "@material-ui/core/Paper";
 import Help1 from "./Help1.png";
+import Help2 from "./Help2.png";
+import Help3 from "./Help3.png";
+
+let images: any[] = [];
+images.push(Help1);
+images.push(Help2);
+images.push(Help3);
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -55,11 +59,14 @@ interface StandardComponentProps{
     setChooseSection: Dispatch<SetStateAction<string>>
     chooseSectionTheme: (theme: string) => void
     openHelpSnake: boolean
+    setCount: Dispatch<SetStateAction<number>>
+    helpCountNull: ()=> void
+    openNoneController: ()=> void
 }
 
 let menu: string[] = []
 
-export default function TableOfContents({isTeacher, map2, sections, setSections, sectionsHelp, chooseTheme, setChooseTheme, chooseSection, setChooseSection, chooseSectionTheme, openHelpSnake}: StandardComponentProps) {
+export default function TableOfContents({isTeacher, map2, sections, setSections, sectionsHelp, chooseTheme, setChooseTheme, chooseSection, setChooseSection, chooseSectionTheme, openHelpSnake, setCount, helpCountNull, openNoneController}: StandardComponentProps) {
     const classes = useStyles();
 
     const [open, setOpen] = React.useState(false);
@@ -71,16 +78,14 @@ export default function TableOfContents({isTeacher, map2, sections, setSections,
     const [nameTheme, setNameTheme] = React.useState('');
 
     const [deleteTheme, setDeleteTheme] = React.useState(false);
+    const [textForDelete, setTextForDelete] = React.useState('');
+
 
     const handleClick = (section: string) => {
         setChooseSection(section);
         setChooseTheme('');
-        //if(section!==chooseSection){
-       //     setOpen(true);
-        //}
-        //else{
-            setOpen(!open);
-        //}
+        setOpen(true);
+        openNoneController();
     };
 
     const addSection = () => {
@@ -109,10 +114,19 @@ export default function TableOfContents({isTeacher, map2, sections, setSections,
         menu = [...menu, nameSection]; // для отображения
 
         Api.setContent("menu", JSON.stringify(mapToObj(map2))).then(() => {
-            console.log("success set content");
-            sectionsHelp = [...sectionsHelp, [nameSection, []]];
-            // @ts-ignore
-            setSections(sectionsHelp);
+
+            sectionsHelp = []
+            Api.getContent("menu").then((data)=>{
+                map2 = new Map(Object.entries(data));
+                map2.forEach((value:string[], key: string)=>{
+                    console.log("мы тут!")
+                    sectionsHelp = [...sectionsHelp, [key, value]];
+                    // @ts-ignore
+                    setSections(sectionsHelp);
+                    console.log("меню", sectionsHelp);
+                });
+            })
+
         })
 
         addSectionClose();
@@ -137,20 +151,34 @@ export default function TableOfContents({isTeacher, map2, sections, setSections,
         }
         menuTh = [...menuTh, nameTheme];
         map2.set(chooseSection, menuTh)
+
+        sectionsHelp.forEach((value) => {
+            if (value[0] === chooseSection) {
+                value[1] = menuTh
+            }
+        })
         Api.setContent("menu", JSON.stringify(mapToObj(map2))).then(() => {
             console.log("success set theme");
-            sectionsHelp.forEach((value) => {
-                if (value[0] === chooseSection) {
-                    value[1] = menuTh
-                }
-            })
+
+            console.log("sections help",sectionsHelp);
+            // @ts-ignore
+            setSections(sectionsHelp);
         })
-        // @ts-ignore
-        setSections(sectionsHelp);
+
         addThemeClose();
     };
 
     const deleteThemeOpen = () => {
+        if(chooseTheme === "" && chooseSection === ""){
+            alert("Сначала выберите тему либо раздел!")
+            return
+        }
+        else if(chooseTheme === "" && chooseSection !== ""){
+            setTextForDelete("Вы точно хотите удалить выбранный раздел?")
+        }
+        else if(chooseTheme !== "" && chooseSection !== ""){
+            setTextForDelete("Вы точно хотите удалить выбранную тему?")
+        }
         setDeleteTheme(true);
     };
 
@@ -159,8 +187,55 @@ export default function TableOfContents({isTeacher, map2, sections, setSections,
     };
 
     const deleteThemeAgree = () => {
-        //themes = themes.filter(letsdelete => letsdelete !== chooseTheme);
-        //setDeleteTheme(false);
+
+        if(chooseTheme !== ""){
+            console.log("удаляем тему")
+            let menuTh = map2.get(chooseSection);
+
+            // @ts-ignore
+            menuTh = menuTh.filter(letsdelete => letsdelete !== chooseTheme);
+            map2.set(chooseSection, menuTh)
+
+            sectionsHelp.forEach((value) => {
+                if (value[0] === chooseSection) {
+                    value[1] = menuTh
+                }
+            })
+
+            Api.setContent("menu", JSON.stringify(mapToObj(map2))).then(() => {
+                // @ts-ignore
+                setSections(sectionsHelp);
+                setChooseTheme("");
+            })
+
+
+            deleteThemeClose();
+        }
+        else if(chooseTheme === "" && chooseSection !== ""){
+            console.log("удаляем раздел")
+
+            map2.delete(chooseSection);
+            console.log(map2);
+
+            Api.setContent("menu", JSON.stringify(mapToObj(map2))).then(() => {
+
+                sectionsHelp = []
+                Api.getContent("menu").then((data)=>{
+                    map2 = new Map(Object.entries(data));
+                    map2.forEach((value:string[], key: string)=>{
+                        console.log("мы тут!")
+                        sectionsHelp = [...sectionsHelp, [key, value]];
+                        // @ts-ignore
+                        setSections(sectionsHelp);
+                        setChooseSection('');
+                        console.log("меню", sectionsHelp);
+                    });
+                })
+            })
+
+
+            deleteThemeClose();
+        }
     };
 
     return (
@@ -174,7 +249,7 @@ export default function TableOfContents({isTeacher, map2, sections, setSections,
                 }
                 className={classes.root}
             >
-                <List dense>
+                <List dense >
                     {sections?.map((section) => {
                         return (
                             <div>
@@ -182,7 +257,7 @@ export default function TableOfContents({isTeacher, map2, sections, setSections,
                                           onClick={() => {
                                               handleClick(section[0])
                                           }}>
-                                    <ListItemText primary={section[0]}/>
+                                    <ListItemText disableTypography style={{fontFamily: 'Andale Mono, monospace', fontSize: '120%'}} primary={section[0]}/>
                                 </ListItem>
 
                                 <Collapse style={{display: section[0] === chooseSection ? 'inline' : 'none'}} in={open}
@@ -190,11 +265,10 @@ export default function TableOfContents({isTeacher, map2, sections, setSections,
                                     <List dense style={{marginLeft: "10px"}}>
                                         {section[1]?.map((theme: string) => {
                                             if (section[0] === chooseSection) {
-                                                console.log(theme)
                                                 return (
                                                     <ListItem selected={theme === chooseTheme} key={theme} button
-                                                              onClick={() => {setChooseTheme(theme); chooseSectionTheme(theme)}}>
-                                                        <ListItemText primary={theme}/>
+                                                              onClick={() => { helpCountNull(); setCount(0); setChooseTheme(theme); chooseSectionTheme(theme)}}>
+                                                        <ListItemText disableTypography style={{fontFamily: 'Andale Mono, monospace', fontSize: '100%'}} primary={theme}/>
                                                     </ListItem>
                                                 );
                                             } else {
@@ -213,8 +287,8 @@ export default function TableOfContents({isTeacher, map2, sections, setSections,
                 </List>
             </List>
             <div>
-                <Slide style={{position: "absolute", top: "60vh", left: "32.5vh"}} direction="right" in={openHelpSnake} mountOnEnter unmountOnExit>
-                    <img src={Help1} alt={"cannot display"} style={{height: "30vh", marginLeft: "3vh"}}/>
+                <Slide style={{position: "absolute", top: "60vh", left: "32vh"}} direction="right" in={openHelpSnake} mountOnEnter unmountOnExit>
+                    <img src={images[Math.floor(Math.random()*images.length)]} alt={"cannot display"} style={{height: "30vh", marginLeft: "3vh"}}/>
                 </Slide>
             </div>
             <div style={{display: isTeacher ? 'inline' : 'none'}}>
@@ -297,7 +371,7 @@ export default function TableOfContents({isTeacher, map2, sections, setSections,
                     >
                         <DialogContent>
                             <DialogContentText id="alert-dialog-description">
-                                Вы точно хотите удалить выбранную тему?
+                                {textForDelete}
                             </DialogContentText>
                         </DialogContent>
                         <DialogActions>
@@ -309,8 +383,6 @@ export default function TableOfContents({isTeacher, map2, sections, setSections,
                             </Button>
                         </DialogActions>
                     </Dialog>
-                    <Button><ArrowUpwardIcon/></Button>
-                    <Button><ArrowDownwardIcon/></Button>
                 </ButtonGroup>
             </div>
         </div>
